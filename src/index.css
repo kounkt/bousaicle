@@ -1,0 +1,36 @@
+@import "tailwindcss";
+
+@theme {
+  /* チエロ・デザインシステム(docs/06_brand.md) */
+  --color-brand: #E60012;
+  --color-brand-dark: #B8000E;
+  --color-ink: #111111;
+  --color-skin: #FFF2D6;
+  --color-line: #BDBDBD;
+  --color-paper: #F5F5F5;
+  --font-sans: "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP", system-ui, sans-serif;
+}
+
+html {
+  font-family: var(--font-sans);
+  color: var(--color-ink);
+}
+
+/* 印刷: 冷蔵庫シートのみを出力 */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #print-sheet,
+  #print-sheet * {
+    visibility: visible;
+  }
+  #print-sheet {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    margin: 0;
+    border: none !important;
+    box-shadow: none !important;
+  }
+}
