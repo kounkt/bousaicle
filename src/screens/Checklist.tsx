@@ -33,11 +33,24 @@ function PlanBuilder({ item, onSave }: { item: StockItem; onSave: (plan: string)
 
 export function Checklist() {
   const { items, updateItem } = useStore();
+  const [copied, setCopied] = useState(false);
   const score = calcScore(items);
   const thisWeek = items.filter((i) => i.status === 'this_week');
 
   const setStatus = (i: StockItem, s: Status) =>
     updateItem(i.id, { status: s, ...(s !== 'this_week' ? { plan: undefined } : {}) });
+
+  const copyShoppingList = async () => {
+    const lines = thisWeek.map((i) => (i.plan ? `□ ${i.plan}` : `□ ${i.name} ${i.requiredQty}${i.unit}`));
+    const text = `【今週そろえる防災備蓄】\n${lines.join('\n')}`;
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      prompt('このテキストをコピーしてね:', text);
+    }
+  };
 
   const toggle = (selected: boolean) =>
     `rounded-md border-2 px-2.5 py-1.5 text-xs font-bold transition ${
@@ -65,9 +78,16 @@ export function Checklist() {
               <p className="text-sm font-bold text-brand">📝 今週のプラン({thisWeek.length}件)</p>
               <ul className="mt-1 space-y-1">
                 {thisWeek.map((i) => (
-                  <li key={i.id} className="text-sm">{i.plan ?? `${i.emoji} ${i.name}`}</li>
+                  <li key={i.id} className="text-sm">{i.plan ?? `${i.emoji} ${i.name}(${i.requiredQty}${i.unit})`}</li>
                 ))}
               </ul>
+              <button
+                type="button"
+                onClick={copyShoppingList}
+                className="mt-2.5 rounded-lg border-2 border-ink bg-white px-3 py-1.5 text-xs font-bold shadow-[2px_2px_0_rgba(17,17,17,0.4)] active:translate-y-0.5 active:shadow-none"
+              >
+                {copied ? '✔ コピーした!' : '📋 買い物リストをコピー(メモやLINEに貼れるよ)'}
+              </button>
             </Card>
           )}
           <div className="space-y-3">

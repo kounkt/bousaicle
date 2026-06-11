@@ -62,6 +62,14 @@ export function Settings({ onRediagnose }: { onRediagnose: () => void }) {
       </Card>
 
       <Card className="mt-4 space-y-1.5">
+        <h2 className="text-sm font-bold">📱 オフラインでも使える</h2>
+        <p className="text-xs leading-relaxed text-ink/70">
+          このサイトをスマホの<b>ホーム画面に追加</b>すると、災害で通信が不安定なときも備蓄リスト・冷蔵庫シートを開けます。
+          iPhone: 共有ボタン→「ホーム画面に追加」/ Android: メニュー→「アプリをインストール」
+        </p>
+      </Card>
+
+      <Card className="mt-4 space-y-1.5">
         <h2 className="text-sm font-bold">プライバシー</h2>
         <p className="text-xs leading-relaxed text-ink/70">
           入力したデータ(家族構成・備蓄状況・集合場所など)は、すべて<b>この端末のブラウザの中だけ</b>に保存され、サーバーには一切送信されません。
