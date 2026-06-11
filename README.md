@@ -1,6 +1,8 @@
-# ボウサイクル(仮称)— チエロと3分、わが家の備え
+# ボウサイクル — チエロと3分、わが家の備え
 
 > ふふん、まかせてよ。— チエロ
+
+**🌐 公開中: https://kounkt.github.io/bousaicle/**
 
 **「不安なのに、何をすればいいかわからない」を、3分で「やることリスト」に変える無料Webアプリ。**
 
@@ -30,14 +32,20 @@
 
 - [x] 市場・社会課題・学術リサーチ(2026-06-11 実施、Web調査3系統)
 - [x] コンセプト決定・企画パッケージ作成(本ドキュメント一式)
-- [ ] 実装(→ [docs/08_release_plan.md](docs/08_release_plan.md) の M0 から着手)
-- [ ] 公開前チェック(名称の商標・既存サービス重複確認を含む)
-- [ ] 一般公開
+- [x] 実装(MVP 7機能、テスト16件、2026-06-11)
+- [x] 公開前チェック(数量基準=農水省ガイド確認済 / 名称重複なし ※商標のJ-PlatPat確認は残)
+- [x] 一般公開: https://kounkt.github.io/bousaicle/(GitHub Pages)
 
-## 実装に入るときの最初の一歩
+## 開発
 
+```bash
+npm install
+npm run dev      # 開発サーバー
+npm test         # 備蓄量計算のユニットテスト
+npm run build    # 型チェック+ビルド
+npm run deploy   # gh-pages ブランチへデプロイ(要 gh 認証)
 ```
-docs/08_release_plan.md の「M0: プロジェクトセットアップ」を開き、
-docs/03_requirements.md の MVP スコープ(F-01〜F-07)を実装する。
-技術スタックは docs/07_tech.md で決定済み(Vite + React + TypeScript + Tailwind、Cloudflare Pages)。
-```
+
+メモ: GitHub Actions による自動デプロイ(.github/workflows/deploy.yml、ローカルのみ)は
+gh トークンに `workflow` スコープを足せば有効化できる: `gh auth refresh -s workflow` の後、
+.gitignore から `.github/` を外してプッシュ。それまでは `npm run deploy` で手動デプロイ。
