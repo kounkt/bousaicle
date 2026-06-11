@@ -14,6 +14,13 @@ export function Rolling() {
 
   const eatAndRebuy = (id: string) => updateItem(id, { status: 'this_week', expiry: null, plan: undefined });
 
+  // 過去の年月が選ばれたら入力ミスの可能性を確認(docs/03 エッジケース)
+  const setExpiryChecked = (id: string, expiry: { year: number; month: number }) => {
+    const end = new Date(expiry.year, expiry.month, 0, 23, 59, 59);
+    if (end < new Date() && !confirm('過去の期限みたいだけど、まちがいない?(すでに期限切れとして表示されます)')) return;
+    updateItem(id, { expiry });
+  };
+
   return (
     <div className="mx-auto max-w-md px-4 py-6">
       <h1 className="mb-4 text-lg font-bold">まわす(ローリングストック)</h1>
@@ -69,7 +76,7 @@ export function Rolling() {
                     onChange={(e) => {
                       const year = Number(e.target.value);
                       if (!year) { updateItem(i.id, { expiry: null }); return; }
-                      updateItem(i.id, { expiry: { year, month: i.expiry?.month ?? 12 } });
+                      setExpiryChecked(i.id, { year, month: i.expiry?.month ?? 12 });
                     }}
                     className="rounded-lg border-2 border-ink bg-white px-2 py-1.5 text-sm">
                     <option value="">未設定</option>
@@ -77,7 +84,7 @@ export function Rolling() {
                   </select>
                   {i.expiry && (
                     <select aria-label="月" value={i.expiry.month}
-                      onChange={(e) => updateItem(i.id, { expiry: { year: i.expiry!.year, month: Number(e.target.value) } })}
+                      onChange={(e) => setExpiryChecked(i.id, { year: i.expiry!.year, month: Number(e.target.value) })}
                       className="rounded-lg border-2 border-ink bg-white px-2 py-1.5 text-sm">
                       {Array.from({ length: 12 }, (_, k) => k + 1).map((m) => <option key={m} value={m}>{m}月</option>)}
                     </select>

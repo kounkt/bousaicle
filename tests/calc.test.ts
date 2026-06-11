@@ -105,4 +105,51 @@ describe('share', () => {
   it('壊れたデータは null を返す', () => {
     expect(decodeShare('garbage!!')).toBeNull();
   });
+
+  it('共有リンクに集合場所・避難先・メモを含めない(プライバシー)', () => {
+    const snap = { household: base, items: buildItems(base), sheet: { meetingPoint: '○○公園', evacSite: '○○小学校', memo: '持病あり' } };
+    const decoded = decodeShare(encodeShare(snap))!;
+    expect(decoded.sheet.meetingPoint).toBe('');
+    expect(decoded.sheet.evacSite).toBe('');
+    expect(decoded.sheet.memo).toBe('');
+  });
+
+  it('改行入りの品目名・不正なIDを持つ共有データは拒否される', () => {
+    const items = buildItems(base);
+    const evil = {
+      household: base,
+      items: [{ ...items[0], name: '水\r\nSUMMARY:偽の予定' }],
+      sheet: { meetingPoint: '', evacSite: '', memo: '' },
+    };
+    expect(decodeShare(encodeShare(evil as never))).toBeNull();
+    const evilId = {
+      household: base,
+      items: [{ ...items[0], id: 'water\r\nX-EVIL:1' }],
+      sheet: { meetingPoint: '', evacSite: '', memo: '' },
+    };
+    expect(decodeShare(encodeShare(evilId as never))).toBeNull();
+  });
+});
+
+describe('ICS インジェクション対策', () => {
+  it('品目名の改行・カンマ・セミコロンがエスケープされる', () => {
+    const items = buildItems(base).map((i) =>
+      i.id === 'water'
+        ? { ...i, name: '水\r\nSUMMARY:hack, x;y', expiry: { year: 2027, month: 6 } }
+        : i,
+    );
+    const ics = buildICS(items)!;
+    expect(ics).not.toContain('\r\nSUMMARY:hack');
+    expect(ics).toContain('\\n');
+    expect(ics).toContain('\\,');
+    expect(ics).toContain('\\;');
+  });
+
+  it('UID は英数・ハイフン・アンダースコアに正規化される', () => {
+    const items = buildItems(base).map((i) =>
+      i.id === 'water' ? { ...i, id: 'water\r\nEVIL' as string, expiry: { year: 2027, month: 6 } } : i,
+    );
+    const ics = buildICS(items)!;
+    expect(ics).toContain('UID:waterEVIL-202706@bousaicle');
+  });
 });

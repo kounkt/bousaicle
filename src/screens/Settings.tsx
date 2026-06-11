@@ -3,6 +3,7 @@ import { useStore } from '../store';
 import { encodeShare, parseImportJSON } from '../logic/share';
 import { SOURCES } from '../data/stockMaster';
 import { Card, GhostButton } from '../components/ui';
+import { ChieroLinks } from '../components/ChieroLinks';
 
 export function Settings({ onRediagnose }: { onRediagnose: () => void }) {
   const { household, items, sheet, importSnapshot, reset } = useStore();
@@ -22,10 +23,11 @@ export function Settings({ onRediagnose }: { onRediagnose: () => void }) {
   };
 
   const copyShareLink = async () => {
+    // 集合場所・避難先・メモは含めない(encodeShare 側で除外。監査指摘)
     const url = `${location.origin}${location.pathname}#share=${encodeShare(snapshot)}`;
     try {
       await navigator.clipboard.writeText(url);
-      setMsg('共有リンクをコピーしたよ。家族に送ってね(リンクにはリストの内容が含まれます)');
+      setMsg('共有リンクをコピーしたよ。リンクには家族構成と備蓄リストが含まれる(集合場所・メモは含まれない)から、家族にだけ送ってね');
     } catch {
       prompt('このURLをコピーしてね:', url);
     }
@@ -92,9 +94,10 @@ export function Settings({ onRediagnose }: { onRediagnose: () => void }) {
         </button>
       </Card>
 
-      <p className="mt-6 text-center text-xs text-ink/50">
-        ボウサイクル v1.0 — つくった人: チエロ 🎩「ふふん、まかせてよ。」
-      </p>
+      <div className="mt-8">
+        <ChieroLinks />
+        <p className="mt-2 text-center text-[11px] text-ink/40">ボウサイクル v1.1</p>
+      </div>
     </div>
   );
 }

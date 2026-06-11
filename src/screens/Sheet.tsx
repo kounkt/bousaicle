@@ -1,5 +1,5 @@
 import { useStore } from '../store';
-import { ChieroSays, ChieroSVG } from '../components/Chiero';
+import { ChieroSays, ChieroFace } from '../components/Chiero';
 import { Card, PrimaryButton } from '../components/ui';
 
 // 環境省ナッジ実証RCT(冷蔵庫掲示シート)のWeb再現(docs/05_evidence.md)
@@ -38,7 +38,7 @@ export function Sheet() {
       <div id="print-sheet" className="mt-5 rounded-lg border-2 border-ink bg-white p-5">
         <div className="flex items-center justify-between border-b-4 border-brand pb-2">
           <h2 className="text-xl font-bold">わが家のそなえシート</h2>
-          <ChieroSVG face="happy" size={48} />
+          <ChieroFace size={48} />
         </div>
         <dl className="mt-3 space-y-2.5 text-sm">
           <div>

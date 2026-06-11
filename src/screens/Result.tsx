@@ -2,7 +2,7 @@ import { useStore } from '../store';
 import { calcScore, scoreComment } from '../logic/score';
 import { downloadShareImage } from '../logic/shareImage';
 import { ChieroSays } from '../components/Chiero';
-import { Card, PrimaryButton, GhostButton, PriorityBadge } from '../components/ui';
+import { Card, PrimaryButton, GhostButton, PriorityBadge, ScoreRing } from '../components/ui';
 
 export function Result({ onStart }: { onStart: () => void }) {
   const { household, items, setTargetDays } = useStore();
@@ -23,11 +23,10 @@ export function Result({ onStart }: { onStart: () => void }) {
   return (
     <div className="mx-auto max-w-md px-4 py-6">
       <Card className="text-center">
-        <p className="text-sm font-bold text-ink/60">わが家のそなえスコア</p>
-        <p className="my-1 text-6xl font-bold tabular-nums">
-          {score}<span className="text-2xl">点</span>
-          <span className="ml-1 text-2xl text-brand" aria-hidden="true">✦</span>
-        </p>
+        <p className="text-sm font-bold text-ink/60">わが家のそなえスコア <span className="text-brand" aria-hidden="true">✦</span></p>
+        <div className="flex justify-center py-1">
+          <ScoreRing score={score} size={160} />
+        </div>
         <p className="text-xs text-ink/60">リストにチェックを入れると上がっていくよ</p>
       </Card>
 
@@ -65,7 +64,7 @@ export function Result({ onStart }: { onStart: () => void }) {
 
       <div className="mt-6 grid gap-2">
         <PrimaryButton onClick={onStart}>このリストで始める ▶</PrimaryButton>
-        <GhostButton onClick={() => downloadShareImage(score)}>📸 スコアを画像でシェア(個人情報は入らないよ)</GhostButton>
+        <GhostButton onClick={() => { void downloadShareImage(score); }}>📸 スコアを画像でシェア(個人情報は入らないよ)</GhostButton>
       </div>
 
       <p className="mt-4 text-xs leading-relaxed text-ink/60">

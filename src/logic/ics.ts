@@ -8,6 +8,21 @@ function icsDate(d: Date): string {
   return `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}`;
 }
 
+// RFC 5545 TEXT エスケープ。共有リンク経由のデータが流れ込むため、
+// 改行・特殊文字によるプロパティ/VEVENT注入を防ぐ(セキュリティ監査指摘)。
+function escText(s: string): string {
+  return s
+    .replace(/\\/g, '\\\\')
+    .replace(/;/g, '\\;')
+    .replace(/,/g, '\\,')
+    .replace(/\r?\n/g, '\\n');
+}
+
+// UID は英数とハイフン・アンダースコアのみに正規化
+function safeUid(s: string): string {
+  return s.replace(/[^A-Za-z0-9_-]/g, '');
+}
+
 /** 期限の30日前に終日イベントを置く ICS を生成(目標名入りリマインダー: Karlan et al. 2016) */
 export function buildICS(items: StockItem[]): string | null {
   const withExpiry = items.filter((i) => i.expiry);
@@ -20,11 +35,11 @@ export function buildICS(items: StockItem[]): string | null {
     const next = new Date(remind.getFullYear(), remind.getMonth(), remind.getDate() + 1);
     return [
       'BEGIN:VEVENT',
-      `UID:${i.id}-${e.year}${pad(e.month)}@bousaicle`,
+      `UID:${safeUid(i.id)}-${e.year}${pad(e.month)}@bousaicle`,
       `DTSTART;VALUE=DATE:${icsDate(remind)}`,
       `DTEND;VALUE=DATE:${icsDate(next)}`,
-      `SUMMARY:【ボウサイクル】${i.name} がそろそろ食べごろ(期限 ${e.year}/${e.month})`,
-      'DESCRIPTION:ふだんのごはんで食べて、減ったぶんを買い足そう。それがローリングストック。',
+      `SUMMARY:${escText(`【ボウサイクル】${i.name} がそろそろ食べごろ(期限 ${e.year}/${e.month})`)}`,
+      `DESCRIPTION:${escText('ふだんのごはんで食べて、減ったぶんを買い足そう。それがローリングストック。')}`,
       'END:VEVENT',
     ].join('\r\n');
   });

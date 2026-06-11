@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import type { Household, SheetInfo, StockItem } from './types';
 import { buildItems } from './data/stockMaster';
-import type { Snapshot } from './logic/share';
+import { snapshotSchema, type Snapshot } from './logic/share';
 
 interface AppStore {
   household: Household | null;
@@ -63,6 +63,12 @@ export const useStore = create<AppStore>()(
       version: 1,
       storage: createJSONStorage(() => localStorage),
       partialize: (s) => ({ household: s.household, items: s.items, sheet: s.sheet }),
+      // localStorage が手動改ざん・破損していても安全に初期状態へ戻す(監査指摘)
+      merge: (persisted, current) => {
+        const parsed = snapshotSchema.safeParse(persisted);
+        return parsed.success ? { ...current, ...(parsed.data as Snapshot) } : current;
+      },
+      migrate: (state) => state as never,
     },
   ),
 );

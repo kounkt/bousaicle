@@ -23,11 +23,12 @@ export function Quiz({ onDone, onCancel }: { onDone: () => void; onCancel: () =>
   const back = () => (step === 0 ? onCancel() : setStep((s) => s - 1));
 
   const finish = () => {
+    const total = adults + seniors + kidsInfant + kidsChild;
     const h: Household = {
       version: 1,
       prefecture,
       dwelling: dwelling ?? 'house',
-      adults: Math.max(adults, seniors + kidsInfant + kidsChild === 0 && adults === 0 ? 1 : adults),
+      adults: total === 0 ? 1 : adults, // 0人で診断されたら大人1人にフォールバック
       seniors,
       kidsInfant,
       kidsChild,
@@ -35,7 +36,6 @@ export function Quiz({ onDone, onCancel }: { onDone: () => void; onCancel: () =>
       flags: { allergy, medication },
       targetDays: 7, // デフォルト効果: 推奨値を初期選択(docs/05)
     };
-    if (h.adults + h.seniors + h.kidsChild + h.kidsInfant === 0) h.adults = 1;
     diagnose(h);
     onDone();
   };
