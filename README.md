@@ -49,3 +49,10 @@ npm run deploy   # gh-pages ブランチへデプロイ(要 gh 認証)
 メモ: GitHub Actions による自動デプロイ(.github/workflows/deploy.yml、ローカルのみ)は
 gh トークンに `workflow` スコープを足せば有効化できる: `gh auth refresh -s workflow` の後、
 .gitignore から `.github/` を外してプッシュ。それまでは `npm run deploy` で手動デプロイ。
+
+## ライセンス
+
+MIT License. 詳細は [LICENSE](LICENSE) を参照してください。
+
+自由に利用・改変・再配布できます。防災は誰の役にも立つべきものなので、
+自治体・学校・企業の備蓄啓発などに、そのまま使っていただいて構いません。
