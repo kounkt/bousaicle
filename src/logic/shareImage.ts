@@ -40,7 +40,7 @@ async function drawShareImage(score: number): Promise<HTMLCanvasElement> {
   x.fillStyle = '#FFFFFF';
   x.font = 'bold 64px "Hiragino Sans", sans-serif';
   x.textAlign = 'center';
-  x.fillText('わが家のそなえスコア', size / 2, 122);
+  x.fillText('わが家の備蓄準備率', size / 2, 122);
 
   // チエロ(イラスト。読み込めない環境では帽子だけ描く)
   const chiero = await loadImg(`${BASE}chiero/hero.webp`);
@@ -68,7 +68,7 @@ async function drawShareImage(score: number): Promise<HTMLCanvasElement> {
   x.font = 'bold 240px "Hiragino Sans", sans-serif';
   x.fillText(String(score), size / 2 - 30, 810);
   x.font = 'bold 72px "Hiragino Sans", sans-serif';
-  x.fillText('点', size / 2 - 30 + String(score).length * 70 + 60, 810);
+  x.fillText('%', size / 2 - 30 + String(score).length * 70 + 60, 810);
 
   // ✦(ちょいキラ)
   x.fillStyle = '#E60012';
@@ -76,10 +76,13 @@ async function drawShareImage(score: number): Promise<HTMLCanvasElement> {
   x.fillText('✦', 150, 300);
   x.fillText('✦', size - 150, 720);
 
+  x.font = '24px "Hiragino Sans", sans-serif';
+  x.fillStyle = '#526158';
+  x.fillText('数量の準備率です。災害時の安全を保証するものではありません。', size / 2, 886);
   // フッター
   x.fillStyle = '#111111';
   x.font = 'bold 42px "Hiragino Sans", sans-serif';
-  x.fillText('あなたも3分でチェック → ボウサイクル', size / 2, 975);
+  x.fillText('chiero.jp/bousaicle/', size / 2, 975);
 
   return c;
 }

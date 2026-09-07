@@ -1,111 +1,37 @@
+import { useState } from 'react';
 import { useStore } from '../store';
 import { expiryState, fmtExpiry } from '../logic/expiry';
+import { ownedQuantity } from '../logic/inventory';
 import { downloadICS } from '../logic/ics';
-import { ChieroSays } from '../components/Chiero';
 import { Card, GhostButton } from '../components/ui';
-
+import { Icon } from '../components/Icon';
+import type { StockItem } from '../types';
+const dateValue = (i: StockItem) => i.expiry?.day ? `${i.expiry.year}-${String(i.expiry.month).padStart(2, '0')}-${String(i.expiry.day).padStart(2, '0')}` : '';
 export function Rolling() {
   const { items, updateItem } = useStore();
-  const expirable = items.filter((i) => i.expirable && i.status === 'have');
-  const soon = expirable.filter((i) => expiryState(i) === 'soon');
-  const expired = expirable.filter((i) => expiryState(i) === 'expired');
-  const now = new Date();
-  const years = Array.from({ length: 11 }, (_, k) => now.getFullYear() + k - 1);
-
-  const eatAndRebuy = (id: string) => updateItem(id, { status: 'this_week', expiry: null, plan: undefined });
-
-  // 過去の年月が選ばれたら入力ミスの可能性を確認(docs/03 エッジケース)
-  const setExpiryChecked = (id: string, expiry: { year: number; month: number }) => {
-    const end = new Date(expiry.year, expiry.month, 0, 23, 59, 59);
-    if (end < new Date() && !confirm('過去の期限みたいだけど、まちがいない?(すでに期限切れとして表示されます)')) return;
-    updateItem(id, { expiry });
+  const [message, setMessage] = useState('');
+  const [filter, setFilter] = useState<'all' | 'attention' | 'unset'>('all');
+  const expirable = items.filter(i => i.expirable && (ownedQuantity(i) > 0 || i.status === 'have'));
+  const rank = (i: StockItem) => expiryState(i) === 'expired' ? 0 : expiryState(i) === 'soon' ? 1 : !i.expiry?.day ? 2 : 3;
+  const shown = expirable.filter(i => filter === 'all' || (filter === 'attention' ? rank(i) <= 1 : !i.expiry?.day)).sort((a, b) => rank(a) - rank(b) || dateValue(a).localeCompare(dateValue(b)));
+  const consume = (item: StockItem) => {
+    const quantity = Math.max(0, ownedQuantity(item) - 1);
+    updateItem(item.id, { ownedQty: quantity, status: quantity >= item.requiredQty ? 'have' : 'this_week', expiry: null, plan: undefined });
+    setMessage(`${item.name}を1${item.unit}減らしました。残りの品物でいちばん近い期限を登録してください。`);
   };
-
-  return (
-    <div className="mx-auto max-w-md px-4 py-6">
-      <h1 className="mb-4 text-lg font-bold">まわす(ローリングストック)</h1>
-
-      {expirable.length === 0 ? (
-        <ChieroSays face="hmm">
-          「持ってる」にした食べもの・飲みものがここに並ぶよ。まずは「そろえる」でチェックを入れてきて。
-        </ChieroSays>
-      ) : (
-        <>
-          <ChieroSays face="normal">
-            賞味期限は「年と月」だけでOK。期限が近づいたら、ふだんのごはんで食べて買い足す。それだけで備えがまわり続ける。
-          </ChieroSays>
-
-          {expired.length > 0 && (
-            <Card className="mt-4 border-brand">
-              <p className="text-sm font-bold text-brand">期限切れ({expired.length}件)</p>
-              <p className="mt-1 text-xs text-ink/70">だいじょうぶ、気づけたのが偉い。買い物リストに戻そう。</p>
-              <ul className="mt-2 space-y-2">
-                {expired.map((i) => (
-                  <li key={i.id} className="flex items-center justify-between gap-2 text-sm">
-                    <span>{i.emoji} {i.name}(〜{i.expiry && fmtExpiry(i.expiry)})</span>
-                    <button type="button" onClick={() => eatAndRebuy(i.id)}
-                      className="shrink-0 rounded-lg bg-ink px-3 py-1.5 text-xs font-bold text-white">買い足しリストへ</button>
-                  </li>
-                ))}
-              </ul>
-            </Card>
-          )}
-
-          {soon.length > 0 && (
-            <Card className="mt-4 border-brand/60">
-              <p className="text-sm font-bold">🔄 もうすぐ食べごろ(期限30日以内)</p>
-              <ul className="mt-2 space-y-2">
-                {soon.map((i) => (
-                  <li key={i.id} className="flex items-center justify-between gap-2 text-sm">
-                    <span>{i.emoji} {i.name}(〜{i.expiry && fmtExpiry(i.expiry)})</span>
-                    <button type="button" onClick={() => eatAndRebuy(i.id)}
-                      className="shrink-0 rounded-lg bg-brand px-3 py-1.5 text-xs font-bold text-white">食べた!買い足す</button>
-                  </li>
-                ))}
-              </ul>
-            </Card>
-          )}
-
-          <section className="mt-5 space-y-3">
-            {expirable.map((i) => (
-              <Card key={i.id} className="p-3.5">
-                <p className="text-sm font-bold">{i.emoji} {i.name}</p>
-                <div className="mt-2 flex items-center gap-2">
-                  <label className="text-xs font-bold text-ink/60" htmlFor={`y-${i.id}`}>いちばん近い期限:</label>
-                  <select id={`y-${i.id}`} aria-label="年" value={i.expiry?.year ?? ''}
-                    onChange={(e) => {
-                      const year = Number(e.target.value);
-                      if (!year) { updateItem(i.id, { expiry: null }); return; }
-                      setExpiryChecked(i.id, { year, month: i.expiry?.month ?? 12 });
-                    }}
-                    className="rounded-lg border-2 border-ink bg-white px-2 py-1.5 text-sm">
-                    <option value="">未設定</option>
-                    {years.map((y) => <option key={y} value={y}>{y}年</option>)}
-                  </select>
-                  {i.expiry && (
-                    <select aria-label="月" value={i.expiry.month}
-                      onChange={(e) => setExpiryChecked(i.id, { year: i.expiry!.year, month: Number(e.target.value) })}
-                      className="rounded-lg border-2 border-ink bg-white px-2 py-1.5 text-sm">
-                      {Array.from({ length: 12 }, (_, k) => k + 1).map((m) => <option key={m} value={m}>{m}月</option>)}
-                    </select>
-                  )}
-                </div>
-              </Card>
-            ))}
-          </section>
-
-          <div className="mt-5">
-            <GhostButton className="w-full" onClick={() => {
-              if (!downloadICS(items)) alert('期限が設定された品目がまだないよ。');
-            }}>
-              📅 カレンダーに通知を入れる(.ics をダウンロード)
-            </GhostButton>
-            <p className="mt-1.5 text-xs text-ink/60">
-              期限の1ヶ月前に「そろそろ食べごろ」の予定が入るファイルです。iPhone/Android/Googleカレンダーで開けます。
-            </p>
-          </div>
-        </>
-      )}
-    </div>
-  );
+  return <div className="page narrow"><p className="eyebrow">使って、買い足す</p><h1 className="page-title">期限を見て、備えをまわす。</h1><p className="lede">家にあるものを、期限が近い順に。減った分だけ買い足しましょう。</p>
+    <div className="notice mt-5"><Icon name="clock" /><p>パッケージに表示された期限を登録してください。消費期限と賞味期限は異なります。このアプリは食べられるかを判定しません。</p></div>
+    <div className="filter-tabs" role="group" aria-label="期限の絞り込み">{([['all', `すべて ${expirable.length}`], ['attention', '期限が近い・過ぎた'], ['unset', '日付未登録']] as const).map(([id, label]) => <button key={id} aria-pressed={filter === id} onClick={() => setFilter(id)}>{label}</button>)}</div>
+    {message && <p className="notice mb-4" role="status">{message}</p>}
+    {!expirable.length ? <Card className="p-6"><h2 className="section-title">家にある備蓄から登録できます。</h2><p className="lede mt-2">「備蓄リスト」で数量を入れると、水・食品・電池などがここに並びます。</p></Card> : <>
+      <div className="space-y-4">{shown.map(i => { const state = expiryState(i); return <Card className="expiry-card" key={i.id}><div className="section-heading"><h2 className="section-title">{i.emoji} {i.name}</h2><span className={`expiry-label ${state === 'expired' ? 'expired' : state === 'soon' ? 'soon' : ''}`}>{state === 'expired' ? '期限を過ぎています' : state === 'soon' ? '30日以内' : i.expiry?.day ? '期限登録済み' : '日付未登録'}</span></div>
+        <p className="fine-print mt-2">現在 {i.ownedQty === undefined ? '数量未確認' : `${i.ownedQty}${i.unit}`}{i.expiry ? ` ／ ${fmtExpiry(i.expiry)}` : ''}</p>
+        {i.expiry && !i.expiry.day && <p className="stock-warning">以前の年月だけの記録です。表示・並び順は月末を仮の基準にしています。パッケージの正確な日付を確認してください。</p>}
+        <label className="date-field">いちばん近い期限<input aria-label={`${i.name}の期限`} type="date" min="2020-01-01" max="2100-12-31" value={dateValue(i)} onChange={e => { if (!e.target.value) { updateItem(i.id, { expiry: null }); return; } const [year, month, day] = e.target.value.split('-').map(Number); if (year < 2020 || year > 2100) return; updateItem(i.id, { expiry: { year, month, day } }); }} /></label>
+        <div className="stock-actions"><button className="text-button" disabled={!ownedQuantity(i)} onClick={() => consume(i)}>1{i.unit}使った・取り出した <Icon name="cycle" size={16} /></button><button className="text-button" onClick={() => { updateItem(i.id, { status: 'this_week', ownedQty: 0, expiry: null, plan: undefined }); setMessage(`${i.name}の残量を0にし、買い物予定に入れました。`); }}>残り0・買い足す <Icon name="arrow" size={16} /></button></div>
+      </Card>; })}</div>
+      {!shown.length && <p className="notice">この条件に該当する品目はありません。</p>}
+      <div className="mt-6"><GhostButton className="w-full" onClick={() => { if (!downloadICS(expirable)) setMessage('まず期限を登録してください。'); else setMessage('カレンダー用ファイルを保存しました。予定アプリに読み込み、通知設定も確認してください。'); }}>カレンダーに確認予定を追加（.ics）</GhostButton><p className="fine-print mt-3">期限の30日前に確認予定を作成します。年月だけの記録は月末を仮の基準にします。読み込み先の通知設定により通知の有無が変わります。</p></div>
+    </>}
+  </div>;
 }

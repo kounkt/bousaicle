@@ -9,29 +9,30 @@ export function Sheet() {
   const input = 'w-full rounded-lg border-2 border-ink bg-white px-3 py-2.5 text-base';
 
   return (
-    <div className="mx-auto max-w-md px-4 py-6">
-      <h1 className="mb-4 text-lg font-bold">冷蔵庫に貼るシート</h1>
+    <div className="page narrow">
+      <p className="eyebrow">家族で共有する</p><h1 className="page-title mb-4">わが家の連絡・避難シート</h1>
       <ChieroSays face="smug">
-        「いつも目に入る場所に貼る」— 日本の1,200世帯の実験で効果が確かめられた方法だよ。書いたら冷蔵庫へ。
+        連絡がつかない時の約束を、家族で決めておこう。書いたら印刷して、見つけやすい場所に。
       </ChieroSays>
 
       <Card className="mt-4 space-y-3">
         <div>
           <label className="mb-1 block text-sm font-bold" htmlFor="meeting">災害時にあつまる場所</label>
-          <input id="meeting" className={input} placeholder="例: ○○公園の時計の下"
+          <input id="meeting" className={input} maxLength={100} placeholder="例: ○○公園の時計の下"
             value={sheet.meetingPoint} onChange={(e) => setSheet({ meetingPoint: e.target.value })} />
         </div>
         <div>
-          <label className="mb-1 block text-sm font-bold" htmlFor="evac">避難先の候補</label>
-          <input id="evac" className={input} placeholder="例: ○○小学校(指定避難所)"
+          <label className="mb-1 block text-sm font-bold" htmlFor="evac">避難先の候補（自治体の情報で確認）</label>
+          <input id="evac" className={input} maxLength={100} placeholder="例: ○○小学校(指定避難所)"
             value={sheet.evacSite} onChange={(e) => setSheet({ evacSite: e.target.value })} />
         </div>
         <div>
           <label className="mb-1 block text-sm font-bold" htmlFor="memo">家族メモ(連絡手順・持病など)</label>
-          <input id="memo" className={input} placeholder="例: つながらない時は171に吹き込む"
+          <input id="memo" maxLength={300} className={input} placeholder="例: つながらない時は171に吹き込む"
             value={sheet.memo} onChange={(e) => setSheet({ memo: e.target.value })} />
         </div>
-        <p className="text-xs text-ink/60">この内容も端末の中だけ。どこにも送信されません。</p>
+        <p className="fine-print">避難先は災害の種類や開設状況により変わります。ハザードマップと自治体の情報を確認してください。</p>
+        <p className="text-xs text-ink/60">このブラウザに保存されます。印刷物・バックアップには家族メモも含まれるため、保管先を確認してください。</p>
       </Card>
 
       {/* 印刷対象 */}
@@ -51,7 +52,7 @@ export function Sheet() {
           </div>
           <div>
             <dt className="font-bold text-brand">■ つながらないとき</dt>
-            <dd>災害用伝言ダイヤル <b>171</b> → 「1」で録音 /「2」で再生(自宅の電話番号で)</dd>
+            <dd>災害用伝言ダイヤル <b>171</b> → 「1」で録音 /「2」で再生。家族で決めた同じ電話番号を使い、音声案内に従う。</dd>
           </div>
           <div>
             <dt className="font-bold text-brand">■ メモ</dt>

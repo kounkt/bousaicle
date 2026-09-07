@@ -34,6 +34,7 @@ export function Settings({ onRediagnose }: { onRediagnose: () => void }) {
   };
 
   const onImportFile = (file: File) => {
+    if (file.size > 1_000_000) { setMsg('ファイルが大きすぎます。1MB以下のバックアップを選んでください。'); return; }
     const reader = new FileReader();
     reader.onload = () => {
       const s = parseImportJSON(String(reader.result));
@@ -43,28 +44,34 @@ export function Settings({ onRediagnose }: { onRediagnose: () => void }) {
         setMsg('読み込んだよ。おかえり。');
       }
     };
+    reader.onerror = () => setMsg('ファイルを読み込めませんでした。もう一度選んでください。');
     reader.readAsText(file);
   };
 
   return (
-    <div className="mx-auto max-w-md px-4 py-6">
-      <h1 className="mb-4 text-lg font-bold">設定・データ</h1>
-      {msg && <p className="mb-3 rounded-lg bg-skin px-3 py-2 text-sm">{msg}</p>}
+    <div className="page narrow">
+      <p className="eyebrow">データを手元に</p><h1 className="page-title mb-5">設定・バックアップ</h1>
+      {msg && <p role="status" className="mb-3 rounded-lg bg-skin px-3 py-2 text-sm">{msg}</p>}
 
+      <Card className="mb-5 migration-card">
+        <h2 className="section-title">以前のURLからデータを引き継ぐ</h2>
+        <ol className="mt-3 space-y-2 text-sm list-decimal pl-5"><li><a href="https://kounkt.github.io/bousaicle/#settings" target="_blank" rel="noreferrer" className="underline">以前のボウサイクル ↗</a>を、使っていた端末・ブラウザで開く。</li><li>「設定」からバックアップを保存する。</li><li>このページの「バックアップを読み込む」で復元する。</li></ol>
+        <p className="fine-print mt-3">新しいURL：chiero.jp/bousaicle/。保存データはURLのドメインごとに分かれるため、自動では移りません。以前のデータはそのまま残ります。</p>
+      </Card>
       <Card className="space-y-2">
         <h2 className="text-sm font-bold">データの持ち運び</h2>
         <GhostButton className="w-full" onClick={exportJSON}>⬇ バックアップを保存(JSON)</GhostButton>
         <GhostButton className="w-full" onClick={() => fileRef.current?.click()}>⬆ バックアップを読み込む</GhostButton>
         <input ref={fileRef} type="file" accept="application/json" className="hidden"
-          onChange={(e) => e.target.files?.[0] && onImportFile(e.target.files[0])} />
-        <GhostButton className="w-full" onClick={copyShareLink}>🔗 家族に共有リンクを送る</GhostButton>
-        <GhostButton className="w-full" onClick={onRediagnose}>🔁 もう一度診断する(チェックは引き継がれます)</GhostButton>
+          onChange={(e) => { const file = e.target.files?.[0]; if (file) onImportFile(file); e.target.value = ""; }} />
+        <GhostButton className="w-full" onClick={copyShareLink}>🔗 家族用の共有リンクをコピー</GhostButton>
+        <GhostButton className="w-full" onClick={onRediagnose}>🔁 家族構成を変更する（残量は引き継ぎ）</GhostButton>
       </Card>
 
       <Card className="mt-4 space-y-1.5">
         <h2 className="text-sm font-bold">📱 オフラインでも使える</h2>
         <p className="text-xs leading-relaxed text-ink/70">
-          このサイトをスマホの<b>ホーム画面に追加</b>すると、災害で通信が不安定なときも備蓄リスト・冷蔵庫シートを開けます。
+          通信できる時に一度開き、読み込みが完了してから<b>ホーム画面に追加</b>すると便利です。保存済みのアプリ・備蓄リスト・家族シートは、通信がない時も利用できます。事前に機内モードで開けるかお試しください。ブラウザのデータを消した場合は再読み込みが必要です。
           iPhone: 共有ボタン→「ホーム画面に追加」/ Android: メニュー→「アプリをインストール」
         </p>
       </Card>
@@ -72,13 +79,13 @@ export function Settings({ onRediagnose }: { onRediagnose: () => void }) {
       <Card className="mt-4 space-y-1.5">
         <h2 className="text-sm font-bold">プライバシー</h2>
         <p className="text-xs leading-relaxed text-ink/70">
-          入力したデータ(家族構成・備蓄状況・集合場所など)は、すべて<b>この端末のブラウザの中だけ</b>に保存され、サーバーには一切送信されません。
-          アカウント登録もありません。共有リンク機能を使った場合のみ、リンクを渡した相手にリストの内容が見えます。
+          入力した家族構成・備蓄状況・家族シートは、<b>このブラウザの保存領域</b>に記録します。アプリから入力内容を運営者へ送信する機能はありません。共有端末では、同じブラウザを使う人が内容を見られます。
+          アカウント登録もありません。共有リンク機能を使った場合のみ、リンクを知っている人に家族構成・備蓄リストの内容が見えます。集合場所・家族メモ・買い物予定の自由文は共有リンクに含めません。バックアップファイルには家族シートも含まれます。
         </p>
       </Card>
 
       <Card className="mt-4 space-y-1.5">
-        <h2 className="text-sm font-bold">数量の根拠(出典)</h2>
+        <h2 className="text-sm font-bold">数量の根拠・確認日</h2>
         <ul className="space-y-1 text-xs">
           {SOURCES.map((s) => (
             <li key={s.url}>
@@ -87,7 +94,7 @@ export function Settings({ onRediagnose }: { onRediagnose: () => void }) {
           ))}
         </ul>
         <p className="text-xs leading-relaxed text-ink/70">
-          本サイトの数量・リストは公的ガイドに基づく<b>目安</b>であり、安全を保証するものではありません。
+          水・トイレ・ボンベは公的資料から換算し、その他は資料を参考にした初期<b>目安</b>であり、安全を保証するものではありません。
           災害時は自治体・気象庁等の公式情報を最優先してください。
         </p>
       </Card>
@@ -104,7 +111,7 @@ export function Settings({ onRediagnose }: { onRediagnose: () => void }) {
 
       <div className="mt-8">
         <ChieroLinks />
-        <p className="mt-2 text-center text-[11px] text-ink/40">ボウサイクル v1.1</p>
+        <p className="mt-2 text-center text-[11px] text-ink/40">ボウサイクル v2.0 / 出典確認 2026-09-07</p>
       </div>
     </div>
   );

@@ -30,16 +30,17 @@ export function buildICS(items: StockItem[]): string | null {
 
   const events = withExpiry.map((i) => {
     const e = i.expiry!;
-    const end = new Date(e.year, e.month, 0); // 月末
+    const end = new Date(e.year, e.month - 1, e.day ?? new Date(e.year, e.month, 0).getDate()); // 月末
     const remind = new Date(end.getFullYear(), end.getMonth(), end.getDate() - 30);
     const next = new Date(remind.getFullYear(), remind.getMonth(), remind.getDate() + 1);
     return [
       'BEGIN:VEVENT',
-      `UID:${safeUid(i.id)}-${e.year}${pad(e.month)}@bousaicle`,
+      `DTSTAMP:${new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '')}`,
+      `UID:${safeUid(i.id)}-${e.year}${pad(e.month)}${e.day ? pad(e.day) : ''}@bousaicle`,
       `DTSTART;VALUE=DATE:${icsDate(remind)}`,
       `DTEND;VALUE=DATE:${icsDate(next)}`,
-      `SUMMARY:${escText(`【ボウサイクル】${i.name} がそろそろ食べごろ(期限 ${e.year}/${e.month})`)}`,
-      `DESCRIPTION:${escText('ふだんのごはんで食べて、減ったぶんを買い足そう。それがローリングストック。')}`,
+      `SUMMARY:${escText(`【ボウサイクル】${i.name} の期限・残量を確認(期限 ${e.year}/${e.month}${e.day ? `/${e.day}` : "・日付未登録"})`)}`,
+      `DESCRIPTION:${escText('パッケージの期限と残量を確認してください。使った分は買い足しましょう。')}`,
       'END:VEVENT',
     ].join('\r\n');
   });

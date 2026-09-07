@@ -13,7 +13,7 @@ export interface Household {
   seniors: number;     // 65歳以上
   kidsInfant: number;  // 0〜2歳
   kidsChild: number;   // 3歳以上の子ども
-  pets: ('dog' | 'cat' | 'other')[];
+  pets: ('dog' | 'cat' | 'other')[]; // one entry per animal; repeated species allowed
   flags: { allergy: boolean; medication: boolean };
   targetDays: 3 | 7;
 }
@@ -29,7 +29,8 @@ export interface StockItem {
   note?: string;
   expirable: boolean;      // 賞味・使用期限を管理する品目か
   status: Status;
-  expiry?: { year: number; month: number } | null;
+  ownedQty?: number; // undefined = legacy quantity not yet confirmed
+  expiry?: { year: number; month: number; day?: number } | null;
   plan?: string;           // if-then プラン文
 }
 

@@ -2,7 +2,9 @@
 
 > ふふん、まかせてよ。— チエロ
 
-**🌐 公開中: https://kounkt.github.io/bousaicle/**
+**公開先: https://chiero.jp/bousaicle/**
+
+2026-09-07更新: 数量・不足量管理、正確な期限日、災害時の公式情報、旧URLからのバックアップ移行に対応。詳細は [v2の変更と公開手順](docs/09_v2_migration.md)。
 
 **「不安なのに、何をすればいいかわからない」を、3分で「やることリスト」に変える無料Webアプリ。**
 
@@ -43,12 +45,13 @@ npm install
 npm run dev      # 開発サーバー
 npm test         # 備蓄量計算のユニットテスト
 npm run build    # 型チェック+ビルド
-npm run deploy   # gh-pages ブランチへデプロイ(要 gh 認証)
+npm run stage:release -- ../chiero_site  # chiero.jpのcheckoutに配置（公開操作なし）
+# 旧GitHub Pagesへの更新が必要な場合のみ npm run deploy:legacy
 ```
 
 メモ: GitHub Actions による自動デプロイ(.github/workflows/deploy.yml、ローカルのみ)は
 gh トークンに `workflow` スコープを足せば有効化できる: `gh auth refresh -s workflow` の後、
-.gitignore から `.github/` を外してプッシュ。それまでは `npm run deploy` で手動デプロイ。
+.gitignore から `.github/` を外してプッシュ。現在の公開手順は docs/09_v2_migration.md を参照。
 
 ## ライセンス
 

@@ -3,7 +3,7 @@ import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import { VitePWA } from 'vite-plugin-pwa';
 
-// GitHub Pages: https://<user>.github.io/bousaicle/
+// Canonical app: https://chiero.jp/bousaicle/; scoped assets also work at the legacy path.
 export default defineConfig({
   base: '/bousaicle/',
   plugins: [
@@ -23,6 +23,7 @@ export default defineConfig({
         display: 'standalone',
         start_url: '/bousaicle/',
         scope: '/bousaicle/',
+        id: '/bousaicle/',
         icons: [
           { src: 'icons/icon-192.png', sizes: '192x192', type: 'image/png' },
           { src: 'icons/icon-512.png', sizes: '512x512', type: 'image/png' },
@@ -31,6 +32,8 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,webp,png,svg,ico}'],
+        navigateFallback: '/bousaicle/index.html',
+        navigateFallbackAllowlist: [/^\/bousaicle(?:\/|$)/],
       },
     }),
   ],

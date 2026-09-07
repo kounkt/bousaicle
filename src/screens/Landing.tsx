@@ -1,92 +1,39 @@
+import { useState } from 'react';
 import { useStore } from '../store';
-import { calcScore, scoreComment } from '../logic/score';
+import { calcScore } from '../logic/score';
+import { ownedQuantity } from '../logic/inventory';
 import { expiryState } from '../logic/expiry';
-import { ChieroHero, ChieroSays } from '../components/Chiero';
-import { ChieroLinks } from '../components/ChieroLinks';
-import { Card, PrimaryButton, GhostButton, ScoreRing } from '../components/ui';
+import { ChieroHero } from '../components/Chiero';
+import { Icon } from '../components/Icon';
+import { Card, PrimaryButton, ScoreRing } from '../components/ui';
 
-export function Landing({ onStartQuiz, go }: { onStartQuiz: () => void; go: (tab: 'check' | 'rolling' | 'sheet') => void }) {
-  const { household, items, storageOk } = useStore();
-
-  // 再訪者: ダッシュボード
-  if (household && items.length > 0) {
-    const score = calcScore(items);
-    const comment = scoreComment(score);
-    const soon = items.filter((i) => i.expirable && i.status === 'have' && expiryState(i) === 'soon').length;
-    const expired = items.filter((i) => i.expirable && i.status === 'have' && expiryState(i) === 'expired').length;
-    const thisWeek = items.filter((i) => i.status === 'this_week').length;
-
-    return (
-      <div className="mx-auto max-w-md px-4 py-6">
-        <Card className="flex items-center justify-center gap-2 py-5">
-          <ScoreRing score={score} size={150} />
-          <ChieroHero size={120} />
-        </Card>
-        <div className="mt-4">
-          <ChieroSays>{comment.text}</ChieroSays>
-        </div>
-        <div className="mt-4 grid gap-2.5">
-          {(expired > 0 || soon > 0) && (
-            <button type="button" onClick={() => go('rolling')}
-              className="rounded-lg border-2 border-brand bg-white px-4 py-3 text-left text-sm font-bold text-brand shadow-[3px_3px_0_rgba(230,0,18,0.25)]">
-              🔄 {expired > 0 ? `期限切れが${expired}件。` : ''}{soon > 0 ? `もうすぐ食べごろが${soon}件。` : ''}見にいく →
-            </button>
-          )}
-          {thisWeek > 0 && (
-            <button type="button" onClick={() => go('check')}
-              className="rounded-lg border-2 border-ink bg-white px-4 py-3 text-left text-sm font-bold shadow-[3px_3px_0_rgba(17,17,17,0.15)]">
-              🛒 今週そろえるもの {thisWeek}件 →
-            </button>
-          )}
-          <GhostButton onClick={() => go('check')}>チェックリストを見る</GhostButton>
-          <GhostButton onClick={() => go('sheet')}>冷蔵庫シートを作る</GhostButton>
-        </div>
-        <div className="mt-10">
-          <ChieroLinks />
-        </div>
+export function Landing({ onStartQuiz, go }: { onStartQuiz: () => void; go: (tab: 'check' | 'rolling' | 'sheet' | 'emergency') => void }) {
+  const { household, items } = useStore();
+  const [people, setPeople] = useState(2);
+  const [days, setDays] = useState<3 | 7>(7);
+  const ready = household && items.length > 0;
+  const soon = items.filter(i => ownedQuantity(i) > 0 && expiryState(i) === 'soon').length;
+  const expired = items.filter(i => ownedQuantity(i) > 0 && expiryState(i) === 'expired').length;
+  return <div className="page home-page">
+    <div className="home-heading"><p className="eyebrow">BOUSAICLE / わが家の防災ノート</p><span className="local-label"><Icon name="check" size={16} />登録不要・無料</span></div>
+    {ready ? <>
+      <h1 className="page-title">備えを、日々の習慣に。</h1><p className="lede">{household.adults + household.seniors + household.kidsInfant + household.kidsChild}人家族・{household.targetDays}日分の備蓄を管理中</p>
+      <div className="dashboard-grid">
+        <Card className="progress-card"><div><p className="eyebrow">備蓄の準備率</p><h2>いまの備えを<br />ひとつずつ。</h2><p className="fine-print">数量を記録すると更新されます。<br />安全性を評価する点数ではありません。</p></div><ScoreRing score={calcScore(items)} size={170} /></Card>
+        <Card className="next-card"><p className="eyebrow">次にすること</p><h2>{expired ? `期限を過ぎた${expired}品目を確認` : soon ? `期限が近い${soon}品目を確認` : '水とトイレの数を確認'}</h2><p>{expired || soon ? 'パッケージの期限と残量を確認して、買い足しへ。' : '家にある量を入れると、買い足す数が分かります。'}</p><PrimaryButton onClick={() => go(expired || soon ? 'rolling' : 'check')}>{expired || soon ? '期限を確認する' : '備蓄リストを開く'} <Icon name="arrow" size={18} /></PrimaryButton></Card>
       </div>
-    );
-  }
-
-  // 初回: ヒーロー
-  return (
-    <div className="dots">
-      <div className="mx-auto max-w-md px-4 py-10 text-center">
-        <div className="flex justify-center">
-          <ChieroHero size={230} />
-        </div>
-        <h1 className="mt-5 text-2xl font-bold leading-snug">
-          わが家の防災、3分で<br />「やることリスト」に。
-        </h1>
-        <p className="mt-3 text-sm leading-relaxed text-ink/70">
-          住まいと家族構成を選ぶだけ。<br />登録不要・無料。データはあなたの端末の中だけ。
-        </p>
-        <PrimaryButton className="mt-7 w-full py-4 text-lg" onClick={onStartQuiz}>
-          そなえチェックをはじめる ▶
-        </PrimaryButton>
-        {!storageOk && (
-          <p className="mt-3 rounded-lg bg-skin px-3 py-2 text-xs">
-            いまは保存できないモード(プライベートブラウズ?)で動いてるよ。診断はできるけど、結果はスクショで残してね。
-          </p>
-        )}
-        <div className="mt-10 space-y-2.5 text-left text-sm">
-          {[
-            ['1️⃣ しらべる', '5つの質問で、わが家に必要な備えの量がわかる'],
-            ['2️⃣ そろえる', '優先度つきリスト。買い物の予定まで決められる'],
-            ['3️⃣ まわす', '賞味期限がきたら「食べて買い足す」。それで備えが続く'],
-          ].map(([t, d]) => (
-            <div key={t} className="rounded-lg border-2 border-ink bg-white px-4 py-3 shadow-[3px_3px_0_rgba(17,17,17,0.15)]">
-              <b>{t}</b><span className="ml-2 text-ink/70">{d}</span>
-            </div>
-          ))}
-        </div>
-        <p className="mt-8 text-xs leading-relaxed text-ink/50">
-          数量は農林水産省・東京備蓄ナビ等の公的ガイドに基づく目安です。
-        </p>
-        <div className="mt-6 border-t border-line/50 pt-5">
-          <ChieroLinks />
-        </div>
-      </div>
-    </div>
-  );
+      <div className="quick-actions"><button onClick={() => go('check')}><Icon name="list" /><span>足りないものをそろえる</span><Icon name="arrow" /></button><button onClick={() => go('sheet')}><Icon name="sheet" /><span>家族の連絡先・避難先を残す</span><Icon name="arrow" /></button></div>
+    </> : <div className="intro-grid">
+      <section className="intro-copy"><h1>いつもの暮らしに、<br /><span>もしもの備え。</span></h1><p className="intro-description">まず、わが家に必要な量を知る。<br />そろえて、使って、買い足す。<br />家族の備えを、このノートに。</p><div className="guide-character"><ChieroHero size={140} /><p>チエロと一緒に、<br />できるところから。</p></div></section>
+      <Card className="calculator"><div className="section-heading"><h2>水とトイレ、何日分？</h2><span className="subtle-tag">かんたん計算</span></div><p className="fine-print mt-2">家族の人数に合わせた備蓄の目安です。</p>
+        <div className="calc-controls"><label htmlFor="quick-people">家族の人数<small>乳幼児を含む</small></label><div className="number-control"><button aria-label="人数を減らす" disabled={people === 1} onClick={() => setPeople(p => p - 1)}>−</button><input id="quick-people" aria-label="家族の人数" inputMode="numeric" type="number" min="1" max="80" value={people} onChange={e => setPeople(Math.max(1, Math.min(80, Math.floor(Number(e.target.value) || 1))))} /><span>人</span><button aria-label="人数を増やす" disabled={people === 80} onClick={() => setPeople(p => p + 1)}>＋</button></div></div>
+        <div className="segmented" role="group" aria-label="備蓄日数">{([3, 7] as const).map(d => <button key={d} aria-pressed={days === d} onClick={() => setDays(d)}>{d}日分{d === 7 && <small>おすすめ</small>}</button>)}</div>
+        <div className="quantity-preview" aria-live="polite"><div><span><Icon name="water" size={18} />飲料・調理用の水</span><p>{people * days * 3}<small>L</small></p><small>2Lボトル 約{Math.ceil(people * days * 3 / 2)}本</small></div><div><span>携帯トイレ</span><p>{people * days * 5}<small>回分</small></p><small>1人1日5回の目安</small></div></div>
+        <PrimaryButton className="w-full" onClick={onStartQuiz}>家族に合わせてリストを作る <Icon name="arrow" size={18} /></PrimaryButton><p className="fine-print text-center mt-3">5つの質問・約3分。途中でやめても大丈夫。</p>
+        <p className="fine-print source-note">水は1人1日3L、トイレは5回を基準に計算。<a href="https://www.maff.go.jp/j/zyukyu/foodstock/imadoki/imadoki02_10.html" target="_blank" rel="noreferrer">農林水産省 ↗</a> / <a href="https://www.bousai.go.jp/kohou/kouhoubousai/r06/111/news_08.html" target="_blank" rel="noreferrer">内閣府 ↗</a></p>
+      </Card>
+    </div>}
+    <button className="emergency-entry" onClick={() => go('emergency')}><Icon name="shield" /><span><strong>災害情報・安否確認はこちら</strong><small>気象庁・ハザードマップ・災害用伝言板</small></span><Icon name="arrow" /></button>
+    <footer className="home-footer"><a href="https://chiero.jp/">CHIERO</a><p>備蓄のデータはこのブラウザに保存。<br className="mobile-only" />ご自身のペースで、備えを続けましょう。</p></footer>
+  </div>;
 }

@@ -6,7 +6,7 @@ import type { Household, StockItem } from '../types';
 // [1] 農林水産省「災害時に備えた食品ストックガイド」
 //     https://www.maff.go.jp/j/zyukyu/foodstock/guidebook.html
 //     - 飲料水: 1人1日3L(飲用+調理)、最低3日分・推奨1週間分
-//     - 主食: 1人1日3食、カセットボンベ: 約6本/週(大人2人世帯の目安)
+//     - 主食: 1人1日3食、カセットボンベ: 約6本/週(1人の目安)
 // [2] 東京備蓄ナビ(東京都) https://www.bichiku.metro.tokyo.lg.jp/
 //     - 家族構成別の品目・数量の考え方を参考
 // [3] 内閣府・日本トイレ協会: 携帯トイレは1人1日5回分
@@ -34,21 +34,21 @@ export function buildItems(h: Household): StockItem[] {
       note: 'ふだん食べているものでOK。それがローリングストック [出典1]', expirable: true, status: 'need',
     },
     {
-      id: 'main', name: '主菜(缶詰・レトルト・冷凍食品)', emoji: '🥫', category: 'main', priority: 'A',
+      id: 'main', name: '主菜(缶詰・常温保存のレトルト等)', emoji: '🥫', category: 'main', priority: 'A',
       requiredQty: ceil(1.5 * eaters * days), unit: '品',
-      note: 'サバ缶・カレー・パスタソースなど、好きなものを多めに [出典1]', expirable: true, status: 'need',
+      note: '常温で保存できるものを中心に。1人1日1.5品は本アプリの目安。食事量に合わせて調整 [出典1]', expirable: true, status: 'need',
     },
     {
       id: 'side', name: '野菜ジュース・果物缶・汁物など', emoji: '🧃', category: 'side', priority: 'B',
       requiredQty: eaters * days, unit: '個',
-      note: '災害時は野菜が不足しがち [出典1]', expirable: true, status: 'need',
+      note: '1人1日1個は本アプリの目安。食事内容に合わせ、野菜・果物も備えてください [出典1]', expirable: true, status: 'need',
     },
     {
       id: 'toilet', name: '携帯トイレ・簡易トイレ', emoji: '🚽', category: 'toilet', priority: 'S',
       requiredQty: 5 * persons * days, unit: '回分',
       note: h.dwelling === 'apt_high'
-        ? '1人1日5回が目安。断水時、中高層階はトイレが最重要 [出典3]'
-        : '1人1日5回が目安。水より先に困るのがトイレ [出典3]',
+        ? '成人の目安は1人1日5回。乳幼児分はおむつ等の利用に合わせて調整。排水設備の安全確認前は流さない [出典3]'
+        : '成人の目安は1人1日5回。乳幼児分はおむつ等の利用に合わせて調整 [出典3]',
       expirable: false, status: 'need',
     },
     {
@@ -58,8 +58,8 @@ export function buildItems(h: Household): StockItem[] {
     },
     {
       id: 'bombe', name: 'カセットボンベ', emoji: '🛢️', category: 'heat', priority: 'A',
-      requiredQty: ceil(persons / 2) * ceil((6 * days) / 7), unit: '本',
-      note: '約6本/週(2人世帯の目安)から換算。使用期限は約7年 [出典1]', expirable: true, status: 'need',
+      requiredQty: ceil((6 * persons * days) / 7), unit: '本',
+      note: '1人1週間約6本から日数換算。調理方法で調整し、換気・保管は製品の注意に従ってください [出典4]', expirable: true, status: 'need',
     },
     {
       id: 'battery', name: 'モバイルバッテリー', emoji: '🔋', category: 'power', priority: 'S',
@@ -118,7 +118,7 @@ export function buildItems(h: Household): StockItem[] {
       {
         id: 'milk', name: '液体ミルク・離乳食', emoji: '🍼', category: 'baby', priority: 'S',
         requiredQty: days * h.kidsInfant, unit: '日分',
-        note: '液体ミルクはお湯不要で災害時に強い [出典1]', expirable: true, status: 'need',
+        note: '年齢・授乳方法に合うものを、普段の1日量で。2歳児などは通常食も含めて調整 [出典1]', expirable: true, status: 'need',
       },
     );
   }
@@ -127,7 +127,7 @@ export function buildItems(h: Household): StockItem[] {
     items.push({
       id: 'medicine', name: '常用薬の予備+お薬手帳のコピー', emoji: '💊', category: 'senior', priority: 'S',
       requiredQty: 1, unit: '式',
-      note: '処方薬は1週間分の余裕を。かかりつけ医に相談 [出典1]', expirable: true, status: 'need',
+      note: '必要な予備の量は、かかりつけ医・薬剤師に相談。お薬手帳も用意 [出典1]', expirable: true, status: 'need',
     });
   }
 
@@ -142,8 +142,8 @@ export function buildItems(h: Household): StockItem[] {
   if (h.flags.allergy) {
     items.push({
       id: 'allergyfood', name: 'アレルギー対応食の確保', emoji: '🏷️', category: 'main', priority: 'S',
-      requiredQty: eaters > 0 ? 3 * days : 1, unit: '食',
-      note: '支援物資はアレルギー対応が遅れがち。自助が基本 [出典1]', expirable: true, status: 'need',
+      requiredQty: days, unit: '日分',
+      note: '必要な全員分の食事量を1日分として確認。主食・主菜と重複するので別枠で買い足す必要はありません [出典1]', expirable: true, status: 'need',
     });
   }
 
@@ -151,8 +151,8 @@ export function buildItems(h: Household): StockItem[] {
     items.push(
       {
         id: 'petfood', name: 'ペットフード・ペット用の水', emoji: '🐾', category: 'pet', priority: 'A',
-        requiredQty: days * petCount, unit: '日分',
-        note: 'ペット用の支援物資は後回しになりやすい [出典2]', expirable: true, status: 'need',
+        requiredQty: days * petCount, unit: '頭日分',
+        note: '頭数×日数。1頭日分はそのペットの普段の1日量。人用の水とは別に確保 [出典2]', expirable: true, status: 'need',
       },
       {
         id: 'pettoilet', name: 'ペットのトイレ用品', emoji: '🐈', category: 'pet', priority: 'B',
@@ -162,15 +162,16 @@ export function buildItems(h: Household): StockItem[] {
     );
   }
 
-  return items;
+  return items.filter(i => i.requiredQty > 0).map(i => ({ ...i, ownedQty: 0 }));
 }
 
 export const SOURCES = [
   {
-    label: '農林水産省「災害時に備えた食品ストックガイド」',
+    label: '[出典1] 農林水産省「災害時に備えた食品ストックガイド」',
     url: 'https://www.maff.go.jp/j/zyukyu/foodstock/guidebook.html',
   },
-  { label: '東京備蓄ナビ(東京都)', url: 'https://www.bichiku.metro.tokyo.lg.jp/' },
-  { label: '内閣府 防災情報のページ', url: 'https://www.bousai.go.jp/' },
+  { label: '[出典2] 東京備蓄ナビ(東京都)', url: 'https://www.bichiku.metro.tokyo.lg.jp/' },
+  { label: '[出典3] 内閣府：災害時のトイレ対策', url: 'https://www.bousai.go.jp/kohou/kouhoubousai/r06/111/news_08.html' },
+  { label: '[出典4] 農林水産省：熱源を確保しよう', url: 'https://www.maff.go.jp/j/zyukyu/foodstock/chapter07.html' },
   { label: 'ハザードマップポータルサイト(国土交通省)', url: 'https://disaportal.gsi.go.jp/' },
 ];

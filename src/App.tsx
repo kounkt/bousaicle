@@ -7,24 +7,32 @@ import { Result } from './screens/Result';
 import { Checklist } from './screens/Checklist';
 import { Rolling } from './screens/Rolling';
 import { Sheet } from './screens/Sheet';
+import { Emergency } from './screens/Emergency';
+import { Icon, type IconName } from './components/Icon';
+import { RuntimeStatus } from './components/RuntimeStatus';
 import { Settings } from './screens/Settings';
 
-type Tab = 'home' | 'check' | 'rolling' | 'sheet' | 'settings';
+type Tab = 'home' | 'check' | 'rolling' | 'sheet' | 'settings' | 'emergency';
 type Flow = 'tabs' | 'quiz' | 'result';
 
-const TABS: { id: Tab; label: string; icon: string }[] = [
-  { id: 'home', label: 'ホーム', icon: '🎩' },
-  { id: 'check', label: 'そろえる', icon: '✅' },
-  { id: 'rolling', label: 'まわす', icon: '🔄' },
-  { id: 'sheet', label: 'シート', icon: '📄' },
-  { id: 'settings', label: '設定', icon: '⚙️' },
+const TABS: { id: Tab; label: string; icon: IconName }[] = [
+  { id: 'home', label: 'ホーム', icon: 'home' },
+  { id: 'check', label: '備蓄リスト', icon: 'list' },
+  { id: 'rolling', label: '期限・補充', icon: 'cycle' },
+  { id: 'sheet', label: '家族シート', icon: 'sheet' },
+  { id: 'emergency', label: 'もしもの時', icon: 'shield' },
 ];
 
 export default function App() {
   const importSnapshot = useStore((s) => s.importSnapshot);
   const [flow, setFlow] = useState<Flow>('tabs');
-  const [tab, setTab] = useState<Tab>('home');
+  const [tab, setTab] = useState<Tab>(location.hash === '#settings' ? 'settings' : location.hash === '#emergency' ? 'emergency' : 'home');
   const [incoming, setIncoming] = useState<Snapshot | null>(null);
+  const [importError, setImportError] = useState(false);
+  useEffect(() => {
+    window.scrollTo({ top: 0 });
+    document.getElementById('main')?.focus({ preventScroll: true });
+  }, [tab, flow]);
 
   // 共有リンク(#share=...)の受け取り
   useEffect(() => {
@@ -33,6 +41,7 @@ export default function App() {
       const snap = decodeShare(m[1]);
       history.replaceState(null, '', location.pathname);
       if (snap) setIncoming(snap);
+      else setImportError(true);
     }
   }, []);
 
@@ -44,15 +53,18 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-paper pb-24">
-      <header className="border-b-2 border-ink bg-white">
-        <div className="mx-auto flex max-w-md items-center justify-between px-4 py-3">
-          <button type="button" onClick={() => { setFlow('tabs'); setTab('home'); }} className="text-lg font-bold">
-            <span className="text-brand">ボウ</span>サイクル
+    <div className="app">
+      <a className="skip-link" href="#main">本文へ移動</a>
+      <header className="app-header">
+        <div className="header-inner">
+          <button type="button" onClick={() => { setFlow('tabs'); setTab('home'); }} className="brand-lockup" aria-label="ボウサイクル ホーム">
+            <span className="brand-mark"><Icon name="cycle" size={29} /></span>ボウサイクル
           </button>
-          <span className="text-[11px] font-bold text-ink/50">チエロと3分、わが家の備え。</span>
+          <div className="header-tools"><a href="https://chiero.jp/">by CHIERO ↗</a><button className="icon-button" aria-label="設定・データ" onClick={() => { setFlow('tabs'); setTab('settings'); }}><Icon name="settings" /></button></div>
         </div>
       </header>
+      <RuntimeStatus />
+      {importError && <p role="alert" className="runtime-status">共有リンクを読み込めませんでした。リンクの全文、またはバックアップファイルを確認してください。</p>}
 
       {incoming && (
         <div className="mx-auto max-w-md px-4 pt-4">
@@ -67,13 +79,14 @@ export default function App() {
         </div>
       )}
 
-      <main>
+      <main id="main" tabIndex={-1}>
         {flow === 'quiz' && <Quiz onDone={() => setFlow('result')} onCancel={() => setFlow('tabs')} />}
         {flow === 'result' && <Result onStart={() => { setFlow('tabs'); setTab('check'); }} />}
         {flow === 'tabs' && (
           <>
+            {tab === 'emergency' && <Emergency />}
             {tab === 'home' && <Landing onStartQuiz={() => setFlow('quiz')} go={(t) => setTab(t)} />}
-            {tab === 'check' && <Checklist />}
+            {tab === 'check' && <Checklist onStart={() => setFlow('quiz')} />}
             {tab === 'rolling' && <Rolling />}
             {tab === 'sheet' && <Sheet />}
             {tab === 'settings' && <Settings onRediagnose={() => setFlow('quiz')} />}
@@ -82,19 +95,8 @@ export default function App() {
       </main>
 
       {flow === 'tabs' && (
-        <nav className="fixed inset-x-0 bottom-0 border-t-2 border-ink bg-white print:hidden" aria-label="メインナビゲーション">
-          <div className="mx-auto flex max-w-md">
-            {TABS.map((t) => (
-              <button key={t.id} type="button" onClick={() => setTab(t.id)}
-                aria-current={tab === t.id ? 'page' : undefined}
-                className={`flex flex-1 flex-col items-center gap-0.5 py-2.5 text-[11px] font-bold ${
-                  tab === t.id ? 'text-brand' : 'text-ink/50'
-                }`}>
-                <span className="text-lg" aria-hidden="true">{t.icon}</span>
-                {t.label}
-              </button>
-            ))}
-          </div>
+        <nav className="app-nav print:hidden" aria-label="メインナビゲーション">
+          <div>{TABS.map(t => <button key={t.id} type="button" onClick={() => setTab(t.id)} aria-current={tab === t.id ? 'page' : undefined}><Icon name={t.icon} />{t.label}</button>)}</div>
         </nav>
       )}
     </div>

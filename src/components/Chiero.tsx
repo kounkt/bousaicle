@@ -39,8 +39,8 @@ export function ChieroSays({ children, small = false }: { face?: Face; children:
   return (
     <div className="flex items-start gap-2.5">
       <ChieroFace size={small ? 48 : 64} className="-mt-1 shrink-0" />
-      <div className="relative mt-1 rounded-xl border-2 border-ink bg-skin px-4 py-3 text-sm leading-relaxed shadow-[3px_3px_0_rgba(17,17,17,0.85)]">
-        <span className="absolute -left-2 top-4 h-4 w-4 rotate-45 border-b-2 border-l-2 border-ink bg-skin" aria-hidden="true" />
+      <div className="relative mt-1 rounded-xl border border-line bg-skin px-4 py-3 text-sm leading-relaxed">
+        <span className="absolute -left-2 top-4 h-4 w-4 rotate-45 border-b border-l border-line bg-skin" aria-hidden="true" />
         {children}
       </div>
     </div>

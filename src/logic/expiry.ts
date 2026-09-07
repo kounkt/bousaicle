@@ -5,14 +5,14 @@ export type ExpiryState = 'expired' | 'soon' | 'ok';
 
 export function expiryState(item: StockItem, now = new Date()): ExpiryState | null {
   if (!item.expiry) return null;
-  const { year, month } = item.expiry;
-  const end = new Date(year, month, 0, 23, 59, 59); // 月末
+  const { year, month, day } = item.expiry;
+  const end = day ? new Date(year, month - 1, day, 23, 59, 59, 999) : new Date(year, month, 0, 23, 59, 59, 999); // 月末
   if (end < now) return 'expired';
   const soonLine = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 30);
   if (end <= soonLine) return 'soon';
   return 'ok';
 }
 
-export function fmtExpiry(e: { year: number; month: number }): string {
-  return `${e.year}年${e.month}月`;
+export function fmtExpiry(e: { year: number; month: number; day?: number }): string {
+  return `${e.year}年${e.month}月${e.day ? `${e.day}日` : "（日付未登録）"}`;
 }

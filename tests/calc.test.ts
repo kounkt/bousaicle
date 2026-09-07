@@ -66,14 +66,14 @@ describe('calcScore', () => {
   });
 
   it('全部 have なら 100 点', () => {
-    const items = buildItems(base).map((i) => ({ ...i, status: 'have' as const }));
+    const items = buildItems(base).map((i) => ({ ...i, status: 'have' as const, ownedQty: i.requiredQty }));
     expect(calcScore(items)).toBe(100);
   });
 
   it('優先度Sの方がスコアへの寄与が大きい', () => {
     const items = buildItems(base);
-    const sDone = items.map((i) => (i.priority === 'S' ? { ...i, status: 'have' as const } : i));
-    const bDone = items.map((i) => (i.priority === 'B' ? { ...i, status: 'have' as const } : i));
+    const sDone = items.map((i) => (i.priority === 'S' ? { ...i, status: 'have' as const, ownedQty: i.requiredQty } : i));
+    const bDone = items.map((i) => (i.priority === 'B' ? { ...i, status: 'have' as const, ownedQty: i.requiredQty } : i));
     expect(calcScore(sDone)).toBeGreaterThan(calcScore(bDone));
   });
 });

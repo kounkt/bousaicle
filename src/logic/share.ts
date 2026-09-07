@@ -15,7 +15,7 @@ const householdSchema = z.object({
   seniors: z.number().int().min(0).max(20),
   kidsInfant: z.number().int().min(0).max(20),
   kidsChild: z.number().int().min(0).max(20),
-  pets: z.array(z.enum(['dog', 'cat', 'other'])).max(3),
+  pets: z.array(z.enum(['dog', 'cat', 'other'])).max(30),
   flags: z.object({ allergy: z.boolean(), medication: z.boolean() }),
   targetDays: z.union([z.literal(3), z.literal(7)]),
 });
@@ -31,7 +31,8 @@ const itemSchema = z.object({
   note: line(200).optional(),
   expirable: z.boolean(),
   status: z.enum(['have', 'need', 'this_week']),
-  expiry: z.object({ year: z.number().int().min(2020).max(2100), month: z.number().int().min(1).max(12) }).nullable().optional(),
+  ownedQty: z.number().int().min(0).max(10000).optional(),
+  expiry: z.object({ year: z.number().int().min(2020).max(2100), month: z.number().int().min(1).max(12), day: z.number().int().min(1).max(31).optional() }).refine(e => !e.day || e.day <= new Date(e.year, e.month, 0).getDate()).nullable().optional(),
   plan: line(200).optional(),
 });
 
@@ -45,7 +46,7 @@ export const snapshotSchema = z.object({
   household: householdSchema.nullable(),
   items: z.array(itemSchema).max(100),
   sheet: sheetSchema,
-});
+}).refine(s => new Set(s.items.map(i => i.id)).size === s.items.length, 'Duplicate item IDs').refine(s => !s.household ? s.items.length === 0 : s.household.adults + s.household.seniors + s.household.kidsInfant + s.household.kidsChild > 0, 'Invalid household');
 
 export type Snapshot = {
   household: Household | null;
@@ -62,7 +63,7 @@ const MAX_JSON = 500_000;
 export function encodeShare(s: Snapshot): string {
   // 共有リンクには集合場所・避難先・家族メモ(最も機微な情報)を含めない。
   // 備蓄リストの共有が目的であり、シートは各家庭で印刷して使う(監査指摘)。
-  const safe: Snapshot = { household: s.household, items: s.items, sheet: EMPTY_SHEET };
+  const safe: Snapshot = { household: s.household, items: s.items.map(({ plan: _plan, ...item }) => item), sheet: EMPTY_SHEET };
   return compressToEncodedURIComponent(JSON.stringify(safe));
 }
 
