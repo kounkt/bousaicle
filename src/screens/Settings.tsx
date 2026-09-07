@@ -54,9 +54,9 @@ export function Settings({ onRediagnose }: { onRediagnose: () => void }) {
       {msg && <p role="status" className="mb-3 rounded-lg bg-skin px-3 py-2 text-sm">{msg}</p>}
 
       <Card className="mb-5 migration-card">
-        <h2 className="section-title">以前のURLからデータを引き継ぐ</h2>
-        <ol className="mt-3 space-y-2 text-sm list-decimal pl-5"><li><a href="https://kounkt.github.io/bousaicle/#settings" target="_blank" rel="noreferrer" className="underline">以前のボウサイクル ↗</a>を、使っていた端末・ブラウザで開く。</li><li>「設定」からバックアップを保存する。</li><li>このページの「バックアップを読み込む」で復元する。</li></ol>
-        <p className="fine-print mt-3">新しいURL：chiero.jp/bousaicle/。保存データはURLのドメインごとに分かれるため、自動では移りません。以前のデータはそのまま残ります。</p>
+        <h2 className="section-title">保存データの引き継ぎ</h2>
+        <ol className="mt-3 space-y-2 text-sm list-decimal pl-5"><li><a href="https://kounkt.github.io/bousaicle/#settings" target="_blank" rel="noreferrer" className="underline">以前のURLの設定画面 ↗</a>を、使っていた端末・ブラウザで開き、「バックアップを保存(JSON)」を選ぶ。</li><li><a href="https://chiero.jp/bousaicle/#settings" target="_blank" rel="noreferrer" className="underline">新しい公式URLの設定画面 ↗</a>を開く。</li><li>新しい公式URLで「バックアップを読み込む」を選び、保存したファイルで復元する。</li></ol>
+        <p className="fine-print mt-3">以前のURLでも引き続き利用できます。保存データはURLのドメインごとに分かれ、自動では同期されません。移行後も以前のデータはそのまま残ります。</p>
       </Card>
       <Card className="space-y-2">
         <h2 className="text-sm font-bold">データの持ち運び</h2>

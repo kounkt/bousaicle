@@ -1,7 +1,22 @@
 import { afterEach, expect, it, vi } from 'vitest';
 import type { Household } from '../src/types';
+import { buildItems } from '../src/data/stockMaster';
 const family: Household = { version: 1, prefecture: '', dwelling: 'house', adults: 2, seniors: 0, kidsInfant: 0, kidsChild: 0, pets: [], flags: { allergy: false, medication: false }, targetDays: 3 };
 afterEach(() => { vi.unstubAllGlobals(); vi.resetModules(); });
+it('loads a previous-version saved household without erasing notes or inventing owned quantities', async () => {
+  const items = buildItems(family).map(({ ownedQty: _ownedQty, ...item }) => ({ ...item, status: 'have', ...(item.id === 'water' ? { expiry: { year: 2027, month: 8 } } : {}), ...(item.id === 'bombe' ? { requiredQty: 3 } : {}) }));
+  const saved = JSON.stringify({ version: 1, state: { household: family, items, sheet: { meetingPoint: '家族の集合場所', evacSite: '避難先のメモ', memo: '残しておく家族メモ' } } });
+  const data = new Map([['bousaicle:v1', saved]]);
+  vi.stubGlobal('localStorage', { getItem: (key: string) => data.get(key) ?? null, setItem: (key: string, value: string) => data.set(key, value), removeItem: (key: string) => data.delete(key) });
+  const { useStore } = await import('../src/store');
+  const state = useStore.getState();
+  expect(state.household).toEqual(family);
+  expect(state.sheet.memo).toBe('残しておく家族メモ');
+  expect(state.items.find(i => i.id === 'water')).toMatchObject({ status: 'have', expiry: { year: 2027, month: 8 } });
+  expect(state.items.find(i => i.id === 'water')!.ownedQty).toBeUndefined();
+  expect(state.items.find(i => i.id === 'bombe')!.requiredQty).toBe(6);
+  expect(data.get('bousaicle:v1')).toBe(saved);
+});
 it('persists actual counts through target changes and a fresh application load', async () => {
   const data = new Map<string, string>();
   vi.stubGlobal('localStorage', { getItem: (key: string) => data.get(key) ?? null, setItem: (key: string, value: string) => data.set(key, value), removeItem: (key: string) => data.delete(key) });

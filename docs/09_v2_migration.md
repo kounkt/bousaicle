@@ -29,7 +29,7 @@
 
 保存キー `bousaicle:v1` と外部スナップショットの世帯version=1を維持。ownedQtyとexpiry.dayは任意の追加項目。旧バックアップ・旧共有リンクを読める。旧版の「持っている」に実数は含まれないため、未確認と表示して数を入力するまで準備率に含めない。世帯変更・インポートでは最新の品目マスターへ対応付ける。
 
-GitHubの旧URLとchiero.jpは別originなのでlocalStorageは共有できない。旧URLは取り出し用に維持し、旧版の設定からJSONを書き出して新URLの設定で取り込む。端末・ブラウザごとに必要。共有リンクは家族シートと買い物予定自由文を除外、JSONバックアップは含む。
+GitHubの旧URLとchiero.jpは別originなのでlocalStorageは共有できない。旧URLでも最新版を利用でき、同じ保存キーで以前のデータを読み込む。新URLへ移す場合は旧URLの設定からJSONを書き出して新URLの設定で取り込む。端末・ブラウザごとに必要。両方の設定画面に移行元・移行先を明記し、自動同期はないことを伝える。共有リンクは家族シートと買い物予定自由文を除外、JSONバックアップは含む。
 
 ## 配置と更新
 
@@ -39,7 +39,9 @@ GitHubの旧URLとchiero.jpは別originなのでlocalStorageは共有できな�
 4. 本人授権の範囲で公開し、Pages完了と公開HTML・主要assets・manifest・service workerのHTTPS応答を確認。
 5. Service workerとmanifestは `/bousaicle/` に限定。サイト本体をnavigation fallbackの対象にしない。
 
-新URLへの強制転送は旧ブラウザデータの取出しを妨げるため行わない。旧URLの常時二重更新は必要ない。新URLで備蓄管理を継続する。
+2026-09-07の本人依頼により、過去に公開したリンクからも最新版を使えるよう、同じ公開ビルドを `kounkt/bousaicle` の `gh-pages` にも配置する。既存の親コミットと古いハッシュ付きassetsを保持し、`.nojekyll`も維持する。以後の公開ではchiero.jpと旧URLの両方を更新・照合する。canonicalとSNSの紹介リンクはchiero.jpに統一する。
+
+新URLへの強制転送は旧ブラウザデータの取出しを妨げるため行わない。旧URLで備蓄管理を継続することも、新URLへバックアップで移すこともできる。
 
 ## 検証と制約
 
