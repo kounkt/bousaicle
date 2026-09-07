@@ -32,6 +32,8 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,webp,png,svg,ico}'],
+        // The 1.2MB promotional card is fetched only when someone opens sharing.
+        globIgnores: ['og.png'],
         navigateFallback: '/bousaicle/index.html',
         navigateFallbackAllowlist: [/^\/bousaicle(?:\/|$)/],
       },

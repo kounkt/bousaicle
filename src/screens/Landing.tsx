@@ -4,6 +4,7 @@ import { calcScore } from '../logic/score';
 import { ownedQuantity } from '../logic/inventory';
 import { expiryState } from '../logic/expiry';
 import { ChieroHero } from '../components/Chiero';
+import { SharePanel } from '../components/SharePanel';
 import { Icon } from '../components/Icon';
 import { Card, PrimaryButton, ScoreRing } from '../components/ui';
 
@@ -34,6 +35,7 @@ export function Landing({ onStartQuiz, go }: { onStartQuiz: () => void; go: (tab
       </Card>
     </div>}
     <button className="emergency-entry" onClick={() => go('emergency')}><Icon name="shield" /><span><strong>災害情報・安否確認はこちら</strong><small>気象庁・ハザードマップ・災害用伝言板</small></span><Icon name="arrow" /></button>
+    <SharePanel />
     <footer className="home-footer"><a href="https://chiero.jp/">CHIERO</a><p>備蓄のデータはこのブラウザに保存。<br className="mobile-only" />ご自身のペースで、備えを続けましょう。</p></footer>
   </div>;
 }

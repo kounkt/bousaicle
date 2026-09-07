@@ -1,6 +1,6 @@
 import { useStore } from '../store';
-import { calcScore } from '../logic/score';
-import { Card, PrimaryButton, GhostButton, PriorityBadge } from '../components/ui';
+import { SharePanel } from '../components/SharePanel';
+import { Card, PrimaryButton, PriorityBadge } from '../components/ui';
 import { Icon } from '../components/Icon';
 export function Result({ onStart }: { onStart: () => void }) {
   const { household, items, setTargetDays } = useStore();
@@ -12,6 +12,7 @@ export function Result({ onStart }: { onStart: () => void }) {
     {(['S', 'A', 'B'] as const).map(p => <section key={p} className="mt-6"><PriorityBadge p={p} /><Card className="mt-2 divide-y divide-line p-0">{items.filter(i => i.priority === p).map(i => <div key={i.id} className="flex items-center justify-between gap-4 px-5 py-4"><span className="text-sm">{i.emoji} {i.name}</span><strong className="shrink-0 text-sm tabular-nums">{i.requiredQty}{i.unit}</strong></div>)}</Card></section>)}
     <p className="fine-print mt-5">水・トイレ・ボンベは公的資料から換算し、ほかの品目は公的資料を参考にした初期目安です。数量の根拠は「備蓄リスト」で確認できます。持病・アレルギー・食事量・ペットの体格などに合わせて調整してください。</p>
     <a className="source-link" href="https://disaportal.gsi.go.jp/" target="_blank" rel="noreferrer">ハザードマップで自宅周辺のリスクを確認 ↗</a>
-    <div className="mt-6 grid gap-3"><PrimaryButton onClick={onStart}>このリストで備えを管理する <Icon name="arrow" size={18} /></PrimaryButton><GhostButton onClick={() => { void import('../logic/shareImage').then(m => m.downloadShareImage(calcScore(items))); }}>現在の準備率を画像で保存</GhostButton></div>
+    <div className="mt-6 grid gap-3"><PrimaryButton onClick={onStart}>このリストで備えを管理する <Icon name="arrow" size={18} /></PrimaryButton></div>
+    <SharePanel />
   </div>;
 }

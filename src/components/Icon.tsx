@@ -1,6 +1,7 @@
 import type { CSSProperties } from 'react';
-export type IconName = 'home' | 'list' | 'cycle' | 'sheet' | 'shield' | 'settings' | 'arrow' | 'water' | 'check' | 'clock' | 'external';
+export type IconName = 'home' | 'list' | 'cycle' | 'sheet' | 'shield' | 'settings' | 'arrow' | 'water' | 'check' | 'clock' | 'external' | 'share';
 const paths: Record<IconName, string> = {
+  share: 'M12 16V3m-5 5 5-5 5 5M5 13H3v8h18v-8h-2',
   home: 'm3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1Z',
   list: 'M9 5h12M9 12h12M9 19h12M3 5h.01M3 12h.01M3 19h.01',
   cycle: 'M20 7a9 9 0 0 0-15-2L2 8m0-6v6h6M4 17a9 9 0 0 0 15 2l3-3m0 6v-6h-6',

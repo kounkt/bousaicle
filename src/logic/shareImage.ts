@@ -1,101 +1,46 @@
-// そなえスコアのシェア画像(Canvas)。個人情報(家族構成・地域・メモ等)は載せない。
+import { PUBLIC_APP_URL, type PublicShare } from './social';
 const BASE = import.meta.env.BASE_URL;
-
-async function loadImg(src: string): Promise<HTMLImageElement | null> {
-  try {
-    const img = new Image();
-    img.src = src;
-    await img.decode();
-    return img;
-  } catch {
-    return null;
-  }
+const FONT = '"Hiragino Sans", "Noto Sans JP", sans-serif';
+async function loadImg(src: string): Promise<HTMLImageElement> {
+  const img = new Image();
+  img.src = src;
+  await img.decode();
+  return img;
 }
 
-async function drawShareImage(score: number): Promise<HTMLCanvasElement> {
-  const size = 1080;
+/** Render only the public message, optional percentage, and existing Chiero illustration. */
+export async function createShareFile(share: PublicShare): Promise<File> {
+  if (share.moment === 'intro') {
+    const response = await fetch(`${BASE}og.png`);
+    if (!response.ok) throw new Error('Card image unavailable');
+    return new File([await response.blob()], 'bousaicle.png', { type: 'image/png' });
+  }
   const c = document.createElement('canvas');
-  c.width = size;
-  c.height = size;
-  const x = c.getContext('2d')!;
-
-  // 背景+ドット(デザインシートのモチーフ)
-  x.fillStyle = '#FFFFFF';
-  x.fillRect(0, 0, size, size);
-  x.fillStyle = 'rgba(17,17,17,0.05)';
-  for (let dy = 60; dy < size - 40; dy += 28) {
-    for (let dx = 60; dx < size - 40; dx += 28) {
-      x.beginPath();
-      x.arc(dx, dy, 3, 0, Math.PI * 2);
-      x.fill();
-    }
-  }
-  // 外枠(シート感)
-  x.strokeStyle = '#111111';
-  x.lineWidth = 10;
-  x.strokeRect(30, 30, size - 60, size - 60);
-  // ヘッダー帯
-  x.fillStyle = '#E60012';
-  x.fillRect(30, 30, size - 60, 130);
-  x.fillStyle = '#FFFFFF';
-  x.font = 'bold 64px "Hiragino Sans", sans-serif';
-  x.textAlign = 'center';
-  x.fillText('わが家の備蓄準備率', size / 2, 122);
-
-  // チエロ(イラスト。読み込めない環境では帽子だけ描く)
+  c.width = 1200; c.height = 630;
+  const x = c.getContext('2d');
+  if (!x) throw new Error('Image export unavailable');
   const chiero = await loadImg(`${BASE}chiero/hero.webp`);
-  if (chiero) {
-    x.drawImage(chiero, size / 2 - 170, 190, 340, 340);
-  } else {
-    const hx = size / 2;
-    const hy = 380;
-    x.fillStyle = '#E60012';
-    x.beginPath();
-    x.ellipse(hx, hy + 60, 220, 60, 0, 0, Math.PI * 2);
-    x.fill();
-    x.beginPath();
-    x.moveTo(hx - 140, hy + 55);
-    x.quadraticCurveTo(hx - 140, hy - 120, hx, hy - 120);
-    x.quadraticCurveTo(hx + 140, hy - 120, hx + 140, hy + 55);
-    x.closePath();
-    x.fill();
-    x.fillStyle = '#111111';
-    x.fillRect(hx - 142, hy + 8, 284, 40);
+  x.fillStyle = '#F1F4EA'; x.fillRect(0, 0, 1200, 630);
+  x.fillStyle = '#FFFFFF'; x.fillRect(20, 20, 1160, 590);
+  x.fillStyle = '#D91724'; x.fillRect(68, 78, 7, 34);
+  x.fillStyle = '#202824'; x.font = `bold 30px ${FONT}`; x.fillText('ボウサイクル', 92, 104);
+  x.fillStyle = '#DADDD7'; x.fillRect(68, 138, 640, 1);
+  x.font = `bold 65px ${FONT}`;
+  share.headline.forEach((line, index) => { x.fillStyle = index === 0 ? '#202824' : '#D91724'; x.fillText(line, 68, 240 + index * 88, 675); });
+  x.fillStyle = '#526158'; x.font = `28px ${FONT}`; x.fillText(share.description, 68, 398, 675);
+  if (share.score !== undefined) {
+    x.fillStyle = '#202824'; x.font = `bold 28px ${FONT}`; x.fillText(`備蓄の準備率  ${share.score}%`, 68, 465);
+    x.fillStyle = '#526158'; x.font = `18px ${FONT}`; x.fillText('数量の目安です。災害時の安全を保証するものではありません。', 68, 504);
   }
-
-  // スコア
-  x.fillStyle = '#111111';
-  x.font = 'bold 240px "Hiragino Sans", sans-serif';
-  x.fillText(String(score), size / 2 - 30, 810);
-  x.font = 'bold 72px "Hiragino Sans", sans-serif';
-  x.fillText('%', size / 2 - 30 + String(score).length * 70 + 60, 810);
-
-  // ✦(ちょいキラ)
-  x.fillStyle = '#E60012';
-  x.font = '56px sans-serif';
-  x.fillText('✦', 150, 300);
-  x.fillText('✦', size - 150, 720);
-
-  x.font = '24px "Hiragino Sans", sans-serif';
-  x.fillStyle = '#526158';
-  x.fillText('数量の準備率です。災害時の安全を保証するものではありません。', size / 2, 886);
-  // フッター
-  x.fillStyle = '#111111';
-  x.font = 'bold 42px "Hiragino Sans", sans-serif';
-  x.fillText('chiero.jp/bousaicle/', size / 2, 975);
-
-  return c;
+  x.drawImage(chiero, 780, 152, 370, 370);
+  x.fillStyle = '#202824'; x.font = `24px ${FONT}`; x.fillText(PUBLIC_APP_URL.replace('https://', ''), 68, 565);
+  x.fillStyle = '#526158'; x.font = `20px ${FONT}`; x.fillText('登録不要・無料', 906, 565);
+  const blob = await new Promise<Blob>((resolve, reject) => c.toBlob(value => value ? resolve(value) : reject(new Error('Image export failed')), 'image/png'));
+  return new File([blob], `bousaicle-${share.moment}.png`, { type: 'image/png' });
 }
-
-export async function downloadShareImage(score: number): Promise<void> {
-  const canvas = await drawShareImage(score);
-  canvas.toBlob((blob) => {
-    if (!blob) return;
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `sonae-score-${score}.png`;
-    a.click();
-    URL.revokeObjectURL(url);
-  }, 'image/png');
+export function downloadShareFile(file: File) {
+  const url = URL.createObjectURL(file);
+  const a = document.createElement('a');
+  a.href = url; a.download = file.name; a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 30_000);
 }

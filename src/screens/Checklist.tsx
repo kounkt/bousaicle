@@ -5,6 +5,7 @@ import { calcScore } from '../logic/score';
 import { missingQuantity, ownedQuantity, shoppingText } from '../logic/inventory';
 import { expiryState } from '../logic/expiry';
 import { Card, PriorityBadge, PrimaryButton } from '../components/ui';
+import { SharePanel } from '../components/SharePanel';
 import { Icon } from '../components/Icon';
 
 const WHEN = ['今日', '明日', '今週の土曜', '今週の日曜', '次の買い物のとき'];
@@ -45,6 +46,7 @@ export function Checklist({ onStart }: { onStart: () => void }) {
       <label className="search-field"><Icon name="list" size={18} /><input aria-label="品目を検索" type="search" value={query} onChange={e => setQuery(e.target.value)} placeholder="品目を探す（水・食料・電池など）" /></label>
       <div className="filter-tabs" role="group" aria-label="品目の絞り込み">{([['all', 'すべて'], ['missing', `不足あり ${missing.length}`], ['priority', '最優先'], ['week', '買い物予定']] as const).map(([id, label]) => <button key={id} aria-pressed={filter === id} onClick={() => setFilter(id)}>{label}</button>)}</div>
       {message && <p role="status" className="notice mb-4">{message}</p>}{copyText && <textarea className="copy-fallback" aria-label="買い物リストのテキスト" value={copyText} readOnly onFocus={e => e.target.select()} />}
+      <SharePanel milestoneOnly />
       <div className="stock-list">{shown.map(i => {
         const needed = missingQuantity(i); const expired = expiryState(i) === 'expired';
         return <Card key={i.id} className={`stock-card ${needed === 0 ? 'stock-complete' : ''}`}>
