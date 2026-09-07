@@ -20,17 +20,21 @@ export function ChieroHero({ size = 200, className = '' }: { size?: number; clas
   );
 }
 
-/** チエロの顔(吹き出し・ワンポイント用) */
+/** Face framing uses the complete original illustration; face.webp is already cut at the chin. */
 export function ChieroFace({ size = 60, className = '' }: { size?: number; className?: string }) {
   return (
-    <img
-      src={`${BASE}chiero/face.webp`}
+    <svg
       width={size}
       height={size}
-      alt="チエロ"
-      draggable={false}
-      className={`select-none ${className}`}
-    />
+      viewBox="55 -30 450 415"
+      role="img"
+      aria-label="チエロ"
+      className={`select-none shrink-0 ${className}`}
+      style={{ overflow: 'hidden', flexShrink: 0 }}
+    >
+      {/* Source is 560 x 560. The full head ends near y=350; this frame includes y=385. */}
+      <image href={`${BASE}chiero/hero.webp`} width="560" height="560" />
+    </svg>
   );
 }
 
